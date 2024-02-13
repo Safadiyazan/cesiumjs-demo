@@ -2,16 +2,13 @@ import React from 'react'
 import { DocsThemeConfig } from 'nextra-theme-docs'
 
 const config: DocsThemeConfig = {
-  logo: <span>My Project</span>,
+  logo: <span>M3T Demo</span>,
   project: {
-    link: 'https://github.com/shuding/nextra-docs-template',
+    link: 'https://github.com/Safadiyazan/m3t-demo',
   },
-  chat: {
-    link: 'https://discord.com',
-  },
-  docsRepositoryBase: 'https://github.com/shuding/nextra-docs-template',
+  docsRepositoryBase: 'https://github.com/Safadiyazan/m3t-demo',
   footer: {
-    text: 'Nextra Docs Template',
+    text: 'Copyright © 2024 Yazan Safadi, All rights reserved.',
   },
 }
 
