@@ -1,3 +1,8 @@
+---
+title: LAATSim The AAM Simulation Tool Shaping the Future of Urban Mobility
+shortTitle: LAATSim Tool
+description: LAATSim is a simulation tool for Advanced Air Mobility (AAM) systems. It replicates AAM systems in a digital environment, allowing users to model and analyze their behavior and performance accurately. LAATSim sets the stage for groundbreaking research in the AAM field and aims to inspire collaboration for innovation and advancement.
+---
 # LAATSim: The AAM Simulation Tool Shaping the Future of Urban Mobility
 
 The landscape of urban transportation is on the verge of a revolution with the rise of Advanced Air Mobility (AAM) systems. These low-altitude passenger and delivery vehicles hold immense potential, but require sophisticated tools to propel research and development forward.
@@ -7,6 +12,10 @@ The landscape of urban transportation is on the verge of a revolution with the r
 **Empowering Stakeholders in the AAM Ecosystem.** LAATSim's modular framework empowers a diverse range of AAM stakeholders. Users can leverage a comprehensive toolkit and library to design and plan AAM operations, while developers have the freedom to contribute and build microservices through an open API gateway.
 
 **More than a Tool, It's a Catalyst for Collaboration.** LAATSim sets the stage for groundbreaking research in the burgeoning field of AAM. We aim to inspire collaboration on a national and global scale, fostering a platform for innovation and advancement within the entire AAM ecosystem.
+
+<br />
+
+<br />
 
 ## Mission
 
@@ -30,6 +39,10 @@ By addressing these challenges, LAATSim empowers a diverse range of stakeholders
 * **Industry Players:** LAATSim equips AAM system and aircraft designers with a comprehensive platform to validate their designs within a realistic operational environment, accelerating the path to commercialization.
 
 Through collaboration and a commitment to overcoming challenges, LAATSim fosters continuous progress towards a thriving AAM ecosystem that benefits all stakeholders.
+
+<br />
+
+<br />
 
 ## Software Design
 
@@ -89,17 +102,23 @@ LAATSim fosters collaboration and innovation through the following features:
 * **Developer Access:** External developers can leverage the API gateway to build and contribute new microservices, enriching the framework's functionalities.
 * **Plugin Integration:** Licensed plugins can be integrated to address specific user needs, further enhancing the simulation capabilities.
 
-**Conclusion**
+**To conclude,** LAATSim's software design prioritizes modularity, flexibility, and user experience. By leveraging microservices, open APIs, and a cloud-based infrastructure, the framework empowers users to conduct comprehensive AAM simulations, fostering informed decision-making and accelerating the development of this promising transportation technology. The proposed software design is shown in Figure 1.
 
-LAATSim's software design prioritizes modularity, flexibility, and user experience. By leveraging microservices, open APIs, and a cloud-based infrastructure, the framework empowers users to conduct comprehensive AAM simulations, fostering informed decision-making and accelerating the development of this promising transportation technology. The proposed software design is shown in Figure 1.
+<br />
 
+<div align="center">
 ![LAATSim simulation software design](./figures/Framework.png)
-**Figure 1. LAATSim Simulation Software Design**
+**Figure 1.** *LAATSim Simulation Software Design*
+</div>
 
+<br />
+
+<br />
 
 ## Application
 
-### Building the LAATSim with CesiumJS
+
+### LAATSim-CesiumJS Integration
 
 The LAATSim is a powerful web-based application designed to streamline and enhance air mobility scenario modeling, analysis, and optimization. This modular tool leverages the strengths of various technologies to deliver a user-friendly and visually immersive experience. Let's delve into how CesiumJS plays a crucial role in this application:
 
@@ -121,13 +140,16 @@ The integration of CesiumJS significantly elevates the user experience of the LA
 
 CesiumJS plays a vital role in the LAATSim by providing a realistic, interactive, and user-friendly platform for visualizing and analyzing air mobility scenarios. It empowers users with a powerful tool to explore, optimize, and ultimately pave the way for the future of efficient and safe air traffic management.
 
+<div align="center">
 ![Screenshot of LAATSim](./figures/LAATSimUI.png)
-**Figure 2. LAATSim intergration with CesiumJS - User interface**
+**Figure 2.** *LAATSim intergration with CesiumJS - User interface*
+</div>
 
 Learn more about CesiumJS: https://cesium.com/platform/cesium-ion/.
 
-### Main Features
-
+<br />
+### Main Features:
+<br />
 #### (i) Data Synchronization from MATLAB to CesiumJS
 
 The LAATSim tool encapsulates several critical parameters exported from the MATLAB simulation, serving as the foundation for visualizing the scenario in CesiumJS. Let's delve into the key data structures:
@@ -151,10 +173,13 @@ The LAATSim tool encapsulates several critical parameters exported from the MATL
   - `rd`: The detection radius of the aircraft (in meters).
 
 
-To seamlessly visualize simulation results in CesiumJS, a robust mechanism synchronizes data between MATLAB and the web-based frontend. Here's a detailed walkthrough of the process:
-   - The core simulation runs in MATLAB, generating critical airspace data.
+To seamlessly visualize simulation results in CesiumJS, a robust mechanism synchronizes data between MATLAB and the web-based frontend, as follow:
+   - The core simulation runs in MATLAB, generating critical airspace data, for more info please refer to [**Safadi et al. (2023)**](https://doi.org/10.1016/j.trc.2023.104141).
    - The `ExportJSON` function (code snippet below) compiles essential parameters into a structured JSON file.
 
+<div align="center">
+**Code 1.** *The function `ExportJSON` [MATLAB]*
+</div>
 ```matlab
 function [scenarioName] = ExportJSON(SceStr,SimInfo,ObjAircraft,TFC,EC,Settings)
 M = SimInfo.M(end); % number of aircraft
@@ -209,27 +234,37 @@ end
 
 **To conclude,** this robust synchronization process bridges the gap between MATLAB's simulation capabilities and CesiumJS's visualization prowess. It guarantees a seamless flow of data, empowering users to explore and analyze air mobility scenarios within a dynamic and informative 3D environment.
 
+<br />
 #### (ii) Converting XYZ Positions to Geospatial Coordinates (Longitude, Latitude, Height)
 
-A crucial feature within the application involves transforming XYZ positions obtained from the simulation into meaningful geospatial coordinates (longitude, latitude, and height). This conversion process enables the visualization of aircraft trajectories within a real-world context on the CesiumJS map.
+A crucial feature within the application involves transforming XYZ positions obtained from the simulation into meaningful geospatial coordinates (longitude, latitude, and height). This conversion process enables the visualization of aircraft trajectories within a real-world context on the CesiumJS model. The conversion workflow is as follows:
 
-The Conversion Workflow:
 
-1. **Iterating Through Aircraft Data:** The code snippet below iterates through the `ObjAircraft` array in the JSON data using `forEach`. This loop processes each aircraft object and its associated XYZ position data. However, the provided code limits the processing to a specific range (index 0 to 299) for demonstration purposes and runtime performance. You might want to adjust this based on your actual data structure.
+- **`computeNewPoint` Function:** This function takes the center point of the simulated airspace (`center`) and the XYZ offsets (`dx`, `dy`, `dz`) as input. Here's a breakdown of its functionality:
+
+    - Offset Matrix Creation: The function utilizes `Transforms.eastNorthUpToFixedFrame` from the Cesium library. This method generates a transformation matrix that considers the Earth's curvature (using the WGS84 ellipsoid) to convert offsets relative to East, North, and Up (AGL) into a fixed-frame coordinate system.
+
+    - Offset Point Calculation: The provided offsets (`dx`, `dy`, `dz`) are multiplied by the created transformation matrix (`offsetMatrix`) using `Matrix4.multiplyByPoint`. This operation effectively applies the East, North, Up offsets to the center point, resulting in the new converted point (`offsetPoint`) in the fixed-frame coordinate system.
+<div align="center">
+**Code 2.** *The function `computeNewPoint` [javascript]*
+</div>
 ``` javascript
-data.ObjAircraft.forEach((ObjAircraft, index) => {
-  if ((index > 0) & (index < 300)) { // Adjust the index range as needed
-    // ... conversion logic here
-  }
-});
+function computeNewPoint(center, dx, dy, dz) {
+  var offsetMatrix = Transforms.eastNorthUpToFixedFrame(center, Ellipsoid.WGS84, new Matrix4());
+  var offsetPoint = Matrix4.multiplyByPoint(offsetMatrix, new Cartesian3(dx, dy, dz), new Cartesian3());
+  return offsetPoint;
+}
 ```
 
-2. **Trajectory Point Generation:** Inside the loop, a new array named `trajectoryPositions` is created to store the converted geospatial coordinates for each aircraft. The code iterates through the aircraft's XYZ position arrays (`ObjAircraft.x`, `ObjAircraft.y`, `ObjAircraft.z`) with a defined step size (`dt`). For each iteration:
+- **Trajectory Point Conversion:** Inside the loop, a new array named `trajectoryPositions` is created to store the converted geospatial coordinates for each aircraft. The code iterates through the aircraft's XYZ position arrays (`ObjAircraft.x`, `ObjAircraft.y`, `ObjAircraft.z`) with a defined step size (`dt`). For each iteration:
 
     - The `computeNewPoint` function is called, taking the center point (`center`) and the current XYZ offsets (`dx`, `dy`, `dz`) as arguments.
 
     - The resulting converted point (`currentPosition`) is then pushed into the `trajectoryPositions` array.
 
+<div align="center">
+**Code 3.** *Trajectory Point Conversion [javascript]*
+</div>
 ``` javascript
 const trajectoryPositions = [];
 for (let i = 0; i < ObjAircraft.x.length; i += dt) {
@@ -241,20 +276,29 @@ for (let i = 0; i < ObjAircraft.x.length; i += dt) {
   });
 }
 ```
-
-3. **`computeNewPoint` Function:** This function takes the center point of the simulated airspace (`center`) and the XYZ offsets (`dx`, `dy`, `dz`) as input. Here's a breakdown of its functionality:
-
-    - Offset Matrix Creation: The function utilizes `Transforms.eastNorthUpToFixedFrame` from the Cesium library. This method generates a transformation matrix that considers the Earth's curvature (using the WGS84 ellipsoid) to convert offsets relative to East, North, and Up (AGL) into a fixed-frame coordinate system.
-
-    - Offset Point Calculation: The provided offsets (`dx`, `dy`, `dz`) are multiplied by the created transformation matrix (`offsetMatrix`) using `Matrix4.multiplyByPoint`. This operation effectively applies the East, North, Up offsets to the center point, resulting in the new converted point (`offsetPoint`) in the fixed-frame coordinate system.
-
+- **Visualing Aircraft Motion:**
+<div align="center">
+**Code 4.** *Visualing Aircraft Motion [javascript]*
+</div>
 ``` javascript
-function computeNewPoint(center, dx, dy, dz) {
-  var offsetMatrix = Transforms.eastNorthUpToFixedFrame(center, Ellipsoid.WGS84, new Matrix4());
-  var offsetPoint = Matrix4.multiplyByPoint(offsetMatrix, new Cartesian3(dx, dy, dz), new Cartesian3());
-  return offsetPoint;
-}
+AddAircraft...
 ```
+
+
+- **Iterating Aircraft Data:** The code snippet below iterates through the `ObjAircraft` array in the JSON data using `forEach`. This loop processes each aircraft object and its associated XYZ position data. However, the provided code limits the processing to a specific range (index 0 to 299) for demonstration purposes and runtime performance. You might want to adjust this based on your actual data structure.
+<div align="center">
+**Code 5.** *Iterating Aircraft Data [javascript]*
+</div>
+``` javascript
+data.ObjAircraft.forEach((ObjAircraft, index) => {
+  if ((index > 0) & (index < 300)) { // Adjust the index range as needed
+    // ... conversion logic here
+  }
+});
+```
+
+
+
 **Benefits of this Approach:**
 
 - **Real-World Context:** By transforming simulated XYZ data into longitude, latitude, and height, the application enables visualization of aircraft trajectories within a familiar geographic context. This enhances user comprehension and facilitates the analysis of air traffic patterns within the simulated airspace.
@@ -267,12 +311,15 @@ function computeNewPoint(center, dx, dy, dz) {
 
 **To conclude,** this conversion approach empowers you to bridge the gap between the simulated world and the real world, fostering a more intuitive and informative user experience for analyzing and understanding air mobility scenarios. A critical element in this method is the `computeNewPoint` function. It leverages Cesium's geospatial transformation capabilities to account for the Earth's curvature and convert the simulated XYZ positions, which are relative to a potentially arbitrary origin, into meaningful longitude, latitude, and height values that can be accurately visualized on the CesiumJS model.
 
+<br />
 #### Keyboard
 
-#### User Inputs and React 
+<br />
+#### User Interface and React Capabilities
 
-#### UI
+<br />
 
+<br />
 ### Future Directions
 
 
