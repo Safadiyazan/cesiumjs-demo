@@ -120,7 +120,7 @@ LAATSim fosters collaboration and innovation through the following features:
 
 ### LAATSim-CesiumJS Integration
 
-The LAATSim is a powerful web-based application designed to streamline and enhance air mobility scenario modeling, analysis, and optimization. This modular tool leverages the strengths of various technologies to deliver a user-friendly and visually immersive experience. Let's delve into how CesiumJS plays a crucial role in this application:
+The LAATSim is a powerful web-based application designed to streamline and enhance air mobility scenario modeling, analysis, and optimization. This modular tool leverages the strengths of various technologies to deliver a user-friendly and visually immersive experience. CesiumJS is a powerful open-source JavaScript library specifically designed for creating interactive 3D globes and maps within web browsers. It leverages WebGL for hardware-accelerated graphics, enabling smooth and performant visualization of geospatial data. Let's delve into how CesiumJS plays a crucial role in this application:
 
 **Realistic Airspace Environment:**
 
@@ -158,7 +158,7 @@ The LAATSim tool encapsulates several critical parameters exported from the MATL
   - `tf`: The final simulation time (in seconds).
   - `dtS`: The simulation time step (in seconds).
   - `x`, `y`, `z`: Arrays containing the aircraft's position coordinates throughout the simulation (in meters). These arrays correspond to the time steps `dtS` defined in `tf`, and are stored in the array `pdt`.
-  - `stat`: An integer representing the aircraft's flight status (0: inactive, 1: active, 2: arrived). These arrays correspond to the time steps `dtS` defined in `tf`, and are stored in the array `statusdt`.
+  - `stat`: An integer representing the aircraft's flight status (0: inactive, 1: active, 2: landed). These arrays correspond to the time steps `dtS` defined in `tf`, and are stored in the array `statusdt`.
 
 - **`Settings`:** This object houses configuration details for the simulated airspace, comprising:
   - `dx`: The size of the airspace along the x-axis (in meters).
@@ -190,7 +190,7 @@ for i = 1:M
     x = double(full_pdt(3*i-2, :)); % x position [m]
     y = double(full_pdt(3*i-1, :)); % y position [m]
     z = double(full_pdt(3*i, :)); % z position [m]
-    stat = double(full_stat(i, :));  % aircraft flight staus {0-inactive, 1-active, 2-arrived}
+    stat = double(full_stat(i, :));  % aircraft flight staus {0-inactive, 1-active, 2-landed}
     ObjAircraftData{i} = struct(...
     'stat', stat,...
     'tda',max(ObjAircraft(i).tdp,0),... % aircraft departure time [s]
@@ -235,7 +235,7 @@ end
 **To conclude,** this robust synchronization process bridges the gap between MATLAB's simulation capabilities and CesiumJS's visualization prowess. It guarantees a seamless flow of data, empowering users to explore and analyze air mobility scenarios within a dynamic and informative 3D environment.
 
 <br />
-#### (ii) Converting XYZ Positions to Geospatial Coordinates (Longitude, Latitude, Height)
+#### (ii) Visualing Aircraft Motion by Converting XYZ Positions to Geospatial Coordinates (Longitude, Latitude, Height)
 
 A crucial feature within the application involves transforming XYZ positions obtained from the simulation into meaningful geospatial coordinates (longitude, latitude, and height). This conversion process enables the visualization of aircraft trajectories within a real-world context on the CesiumJS model. The conversion workflow is as follows:
 
@@ -276,14 +276,41 @@ for (let i = 0; i < ObjAircraft.x.length; i += dt) {
   });
 }
 ```
-- **Visualing Aircraft Motion:**
+
+- **Animating Aircraft Movement:** Building upon the geospatial coordinate conversion, the `AddAircraftMotion` function plays a crucial role in animating the movement of aircraft within the CesiumJS visualization. This function takes a set of pre-calculated trajectory positions (converted from XYZ to geospatial coordinates) and injects them into the CesiumJS viewer, creating a visual representation of aircraft motion over time.
+
+**Inputs:**
+
+* `startSim`: (number) Defines the starting simulation time (converted from seconds to astronomical Julian date).
+* `stopSim`: (number) Defines the ending simulation time (converted from seconds to astronomical Julian date).
+* `timeStepInSeconds`: (number) Represents the time interval between each displayed position (in seconds).
+* `index + 1`: (number) A unique identifier for the current aircraft being processed (incremented from `index`).
+* `trajectoryPositions`: (array) An array containing the pre-computed geospatial coordinates (longitude, latitude, height) for the aircraft's trajectory.
+* `ObjAircraft.status`: (string) Represents the status of the aircraft (e.g., "in-active", "active," "landed").
+* `ObjAircraft.tda`: (number) Aircraft departure time (in seconds).
+* `ObjAircraft.taa`: (number) Aircraft arrival time (in seconds).
+* `ObjAircraft.rs`: (number) Aircraft safety radius (in meters).
+* `ObjAircraft.rd`: (number) Aircraft detection radius (in meters).
+* `entitiesArray`: (array) CesiumJS aircraft entity collection.
+
 <div align="center">
-**Code 4.** *Visualing Aircraft Motion [javascript]*
+**Code 4.** *Animating Aircraft Motion [javascript]*
 </div>
 ``` javascript
-AddAircraft...
+AddAircraftMotion(startSim, stopSim, timeStepInSeconds, index + 1, trajectoryPositions, ObjAircraft.status, ObjAircraft.tda, ObjAircraft.taa, ObjAircraft.rs, ObjAircraft.rd, entitiesArray);
 ```
 
+The `AddAircraftMotion` function plays a crucial role in animating aircraft movement within the CesiumJS visualization, with the following key CesiumJS features: 
+* `Cartesian3.fromDegrees`: Converts geospatial coordinates to CesiumJS positions.
+* `JulianDate`: Represents a specific point in time.
+* `TimeIntervalCollection`: Defines the visibility timeframe for entities.
+* `SampledPositionProperty`: Tracks the changing position of an entity over time.
+* `Polyline`: Creates lines connecting a series of positions.
+* `CallbackProperty`: Enables dynamic updates of entity properties based on functions.
+* `Model`: Loads and displays 3D models within the viewer.
+* `VelocityOrientationProperty`: Calculates the orientation of an entity based on its movement.
+* `Ellipsoid`: Creates 3D spheres for visualization.
+* `DistanceDisplayCondition`: Controls the visibility of entities based on viewer distance.
 
 - **Iterating Aircraft Data:** The code snippet below iterates through the `ObjAircraft` array in the JSON data using `forEach`. This loop processes each aircraft object and its associated XYZ position data. However, the provided code limits the processing to a specific range (index 0 to 299) for demonstration purposes and runtime performance. You might want to adjust this based on your actual data structure.
 <div align="center">
@@ -291,47 +318,397 @@ AddAircraft...
 </div>
 ``` javascript
 data.ObjAircraft.forEach((ObjAircraft, index) => {
-  if ((index > 0) & (index < 300)) { // Adjust the index range as needed
-    // ... conversion logic here
-  }
-});
+        if ((index > 0) & (index < 300)) {
+            const trajectoryPositions = [];
+            for (let t = 0; t < ObjAircraft.x.length; t += dt) {
+                const currentPosition = computeNewPoint(center, ObjAircraft.x[t], ObjAircraft.y[t], ObjAircraft.z[t]);
+                trajectoryPositions.push({
+                    longitude: CesiumMath.toDegrees(Cartographic.fromCartesian(currentPosition).longitude),
+                    latitude: CesiumMath.toDegrees(Cartographic.fromCartesian(currentPosition).latitude),
+                    height: Cartographic.fromCartesian(currentPosition).height
+                });
+            } // IF INDEX END
+            AddAircraftMotion(startSim, stopSim, timeStepInSeconds, index + 1, trajectoryPositions, ObjAircraft.status, ObjAircraft.tda, ObjAircraft.taa, ObjAircraft.rs, ObjAircraft.rd, 0, entitiesArray);
+        }
+    });
+```
+**Functionality:**
+
+* **Geospatial Transformation:** At the core lies the `computeNewPoint` function. It leverages Cesium's `Transforms.eastNorthUpToFixedFrame` function to account for Earth's curvature (WGS84 ellipsoid) and convert relative XYZ offsets (`dx`, `dy`, `dz`) into geospatial coordinates (longitude, latitude, height) within a fixed-frame coordinate system.
+* **Trajectory Animation:** The `AddAircraftMotion` function takes these converted geospatial coordinates and injects them into the CesiumJS visualization. It iterates through the trajectory positions, creating entities for each point along the aircraft's flight path. This process effectively animates the movement of aircraft over time.
+* **Entity Creation:** For each position in the trajectory, a corresponding entity is created or updated within the `entitiesArray`. This entity holds the aircraft's visual representation and its associated geospatial coordinates at that specific time step.
+
+**Benefits:**
+
+* **Real-World Visualization:** By converting simulated XYZ data into familiar geospatial coordinates (longitude, latitude, height), the application enables users to visualize aircraft trajectories within a real-world geographic context. This enhances user comprehension and facilitates the analysis of air traffic patterns within the simulated airspace.
+* **Accuracy and Flexibility:** The integration of Cesium's geospatial transformation functions ensures accurate conversion while maintaining flexibility. The `computeNewPoint` function can be adapted to handle different coordinate system origins or offset calculation methods based on specific simulation requirements.
+* **Seamless CesiumJS Integration:** The converted geospatial coordinates directly align with CesiumJS's data format, streamlining the creation of visually compelling and informative 3D visualizations of the simulated air traffic.
+
+**To conclude,** this conversion approach bridges the gap between the simulated and real world, fostering a more intuitive user experience for analyzing and understanding air mobility scenarios. The `computeNewPoint` function plays a crucial role by accurately converting simulated positions into meaningful geospatial coordinates. By incorporating `AddAircraftMotion`, the application transforms static coordinates into a dynamic visualization, enabling users to observe and analyze aircraft movements within the simulated airspace. This approach empowers users to gain valuable insights into air traffic patterns and make informed decisions within the simulated environment.
+
+<br />
+<div align="center">
+![Screenshot of LAATSim](./figures/LAATSimAircraftNYC.png)
+**Figure 3.** *Aircraft motion visualized in CesiumJS viewer*
+</div>
+
+<br />
+
+#### (iii) Visualizing Airspace Structure
+
+This section describes the code responsible for visualizing airspace structure within the CesiumJS project. CesiumJS is a powerful open-source JavaScript library specifically designed for creating interactive 3D globes and maps within web browsers. It leverages WebGL for hardware-accelerated graphics, enabling smooth and performant visualization of geospatial data.
+
+**Input Parameters:**
+* `center`: The airspace's center point in geographic coordinates (degrees).
+* `dx`: Half the airspace width in meters.
+* `dy`: Half the airspace height in meters.
+* `dz`: The airspace height in meters.
+
+**Code Breakdown:** The code defines helper functions first:
+* `computeNewPoint`: Calculates a new point relative to a given center with specified easting, northing, and altitude offsets.
+* `plotPoint` Creates a visual point representation on the map.
+
+<div align="center">
+**Code 6.** *Visualizing Airspace Structure [javascript]*
+</div>
+```javascript
+function PlotAirspace(center) {
+  const centerPlotting = computeNewPoint(center, 0, 0, 0);
+
+  // Calculate corner points at base altitude
+  const newPointSE = computeNewPoint(centerPlotting, dx / 2, -dy / 2, 0);
+  const newPointNE = computeNewPoint(centerPlotting, dx / 2, dy / 2, 0);
+  const newPointSW = computeNewPoint(centerPlotting, -dx / 2, -dy / 2, 0);
+  const newPointNW = computeNewPoint(centerPlotting, -dx / 2, dy / 2, 0);
+
+  // Calculate corner points at top altitude
+  const newPointSEUP = computeNewPoint(centerPlotting, dx / 2, -dy / 2, dz);
+  const newPointNEUP = computeNewPoint(centerPlotting, dx / 2, dy / 2, dz);
+  const newPointSWUP = computeNewPoint(centerPlotting, -dx / 2, -dy / 2, dz);
+  const newPointNWUP = computeNewPoint(centerPlotting, -dx / 2, dy / 2, dz);
+
+  // Convert corner points to geographic coordinates
+  const cartographicNW = Cartographic.fromCartesian(newPointNW);
+  const cartographicNE = Cartographic.fromCartesian(newPointNE);
+  const cartographicSE = Cartographic.fromCartesian(newPointSE);
+  const cartographicSW = Cartographic.fromCartesian(newPointSW);
+
+  // Create a polygon entity representing the airspace
+  const airspace = viewer.entities.add({
+    name: `Airspace`,
+    description: ``,
+    polygon: {
+      hierarchy: Cartesian3.fromDegreesArray([
+        CesiumMath.toDegrees(cartographicNW.longitude), CesiumMath.toDegrees(cartographicNW.latitude),
+        CesiumMath.toDegrees(cartographicNE.longitude), CesiumMath.toDegrees(cartographicNE.latitude),
+        CesiumMath.toDegrees(cartographicSE.longitude), CesiumMath.toDegrees(cartographicSE.latitude),
+        CesiumMath.toDegrees(cartographicSW.longitude), CesiumMath.toDegrees(cartographicSW.latitude),
+      ]),
+      height: dz0,
+      extrudedHeight: dz0 + dz,
+      material: Color.CYAN.withAlpha(0.1), // Semi-transparent cyan
+      outline: true,
+      outlineColor: Color.CYAN,
+      allowPicking: false,
+    },
+  });
+}
+
+PlotAirspace(center);
 ```
 
-
-
-**Benefits of this Approach:**
-
-- **Real-World Context:** By transforming simulated XYZ data into longitude, latitude, and height, the application enables visualization of aircraft trajectories within a familiar geographic context. This enhances user comprehension and facilitates the analysis of air traffic patterns within the simulated airspace.
-
-- **Accuracy:** The integration of Cesium's geospatial transformation functions ensures accurate conversion, considering the Earth's curvature. This guarantees that the displayed aircraft positions correspond to their actual locations within the real world.
-
-- **Flexibility:** This approach is adaptable to various simulation scenarios. The `computeNewPoint` function can be tailored to handle different coordinate system origins or offset calculation methods based on your specific simulation setup.
-
-- **Seamless Integration with CesiumJS:** The converted geospatial coordinates (longitude, latitude, height) directly align with the data format expected by CesiumJS. This streamlined integration facilitates the creation of visually compelling and informative 3D visualizations of the simulated air traffic.
-
-**To conclude,** this conversion approach empowers you to bridge the gap between the simulated world and the real world, fostering a more intuitive and informative user experience for analyzing and understanding air mobility scenarios. A critical element in this method is the `computeNewPoint` function. It leverages Cesium's geospatial transformation capabilities to account for the Earth's curvature and convert the simulated XYZ positions, which are relative to a potentially arbitrary origin, into meaningful longitude, latitude, and height values that can be accurately visualized on the CesiumJS model.
+**Note:** 
+- The code assumes lighting and shadows are enabled, enhancing the visualization with CesiumJS's built-in support. 
+- The initial camera position provides a specific viewpoint of the airspace. CesiumJS offers extensive camera controls for users to freely explore the 3D globe.
+- Airspace entity properties like material, outline, and altitude are configurable within the code. CesiumJS provides a rich set of properties for customizing the appearance and behavior of entities.
+- This code demonstrates creating basic airspace visualizations using CesiumJS's core functionalities for geospatial data representation, entity creation, and visual customization. By leveraging CesiumJS's extensive capabilities, you can extend this to create even more informative and interactive airspace visualizations, such as:
+    - Coloring the airspace based on altitude zones.
+    - Incorporating 3D models to represent restricted areas within the airspace.
+    - Overlaying airspace data with flight paths or other relevant information.
 
 <br />
-#### Keyboard
+<div align="center">
+![Screenshot of LAATSim](./figures/LAATSimAirspaceNYC.png)
+**Figure 4.** *Aircraft structure visualized in CesiumJS viewer with `Center=(-73.984359, 40.751718,480)`*
+</div>
 
 <br />
-#### User Interface and React Capabilities
+<div align="center">
+![Screenshot of LAATSim](./figures/LAATSimAirspaceZurich.png)
+**Figure 5.** *Aircraft structure visualized in CesiumJS viewer with `Center=(8.545094,47.373878,480)`*
+</div>
+
+<br />
+<div align="center">
+![Screenshot of LAATSim](./figures/LAATSimAirspaceDubai.png)
+**Figure 6.** *Aircraft structure visualized in CesiumJS viewer with `Center=(55.216305,25.196254,480)`*
+</div>
+
+<br />
+#### (iv) Interactive Navigation within Airspace Using Keyboard Controls
+
+This section describes a powerful feature that enables you to navigate within the airspace visualized using CesiumJS and focus on specific aircraft. This functionality leverages CesiumJS's extensive camera control capabilities, providing an immersive and interactive user experience.
+
+**Keyboard Controls:**
+
+The following table summarizes the available keyboard actions for navigation:
+
+<div align="center">
+**Table 1.** *Navigation Keyboard Setting*
+| Key | Action |
+|---|---|
+| **`w`** | Pitch Up |
+| **`s`** | Pitch Down |
+| **`a`** | Roll Left |
+| **`d`** | Roll Right |
+| **`q`** | Yaw Left (turn counter-clockwise) |
+| **`e`** | Yaw Right (turn clockwise) |
+| **`↑`** | Move Forward |
+| **`↓`** | Move Backward |
+| **`←`** | Move Left |
+| **`→`** | Move Right |
+| **`PgUp`** | Increase Height |
+| **`PgDn`** | Decrease Height |
+| **`h`** | Reset Camera Position and Orientation |
+| **`r`** | Focus on a Random Available Aircraft |
+| **`f`** | Zoom to a Random Available Aircraft |
+</div>
+
+**Detailed Description:**
+
+The core functionality for keyboard navigation is implemented within the `onKeyDown` and `onKeyUp` event listener functions. These functions track the pressed keys and update the camera's orientation and movement accordingly.
+
+* **`onKeyDown`**: This function registers a key press event and performs the following actions:
+    * Stores the pressed key's state in a `keyState` object.
+    * Prevents default behavior for arrow keys to avoid unintended scrolling.
+    * Resets the camera position and orientation to the initial values when the 'h' key is pressed.
+    * Attempts to focus on a random available aircraft when the 'r' key is pressed.
+    * Zooms to a random available aircraft when the 'f' key is pressed.
+* **`onKeyUp`**: This function registers a key release event and updates the `keyState` object to reflect the released key.
+* **`handleMovement`**: This function continuously updates the camera's orientation and movement based on the currently pressed keys. It performs the following actions:
+    * Checks the `NavigationOn` flag to ensure keyboard navigation is enabled before proceeding.
+    * Updates the camera's pitch, roll, and yaw based on pressed arrow keys.
+    * Adjusts the camera's forward/backward, left/right, and up/down movement based on the pressed arrow keys.
+    * Updates the camera's view with the modified orientation values.
+    * Calls the `viewer.render()` function to update the scene.
+    * Continuously loops through the `requestAnimationFrame` to handle ongoing movement updates.
+
+**CesiumJS Camera Control Capabilities:**
+
+CesiumJS provides a rich set of functionalities for camera control, enabling you to create an interactive exploration experience:
+
+* **Camera Orientation**: CesiumJS allows you to manipulate the camera's pitch, roll, and yaw, effectively controlling the viewing angle within the 3D scene. This feature utilizes keyboard presses to dynamically update these values, providing fine-grained control over your perspective.
+* **Camera Movement**: CesiumJS offers functions to move the camera forward, backward, left, right, up, and down. The keyboard navigation code leverages these functionalities to allow users to navigate around the airspace and explore different viewpoints.
+* **View Targeting**: CesiumJS allows focusing on specific entities within the scene. This feature utilizes the `viewer.trackedEntity` property to highlight a randomly chosen available aircraft when the 'r' key is pressed.
+
+**Customization:**
+
+The provided code offers a foundation for keyboard navigation within your CesiumJS airspace visualization. You can further customize this functionality by:
+
+* Modifying the keyboard shortcuts to better suit your user preferences.
+* Implementing additional navigation controls, such as mouse-based controls or a virtual joystick.
+* Integrating the navigation logic with other functionalities like information panels displaying aircraft details upon focusing on them.
+
+By leveraging CesiumJS's extensive camera control capabilities and these customization options, you can create a user-friendly and interactive experience for exploring airspace data within your web application.
+
+<div align="center">
+**Code 7.** *Navigation Keyboard Setting [javascript]*
+</div>
+``` javascript
+        function onKeyDown(event) {
+            keyState[event.key] = true;
+            if ((event.key === 'ArrowUp' || event.key === 'ArrowDown' || event.key === 'ArrowLeft' || event.key === 'ArrowRight' || event.key === 'PageUp' || event.key === 'PageDown')) {
+                event.preventDefault(); // Prevent scrolling when arrow keys are pressed
+            }
+            if ((event.key === 'h')) {
+                // Reset camera to initial position and orientation
+                pitch = initialOrientation.pitch;
+                roll = initialOrientation.roll;
+                yaw = initialOrientation.heading;
+                height = initialPosition.height;
+                camera.flyTo({
+                    destination: initialPosition,
+                    orientation: initialOrientation,
+                });
+                viewer.trackedEntity = undefined;
+            }
+            if ((event.key === 'r')) {
+                var randomNumber = Math.floor(Math.random() * entitiesArray.length);
+                var FindEntity = 1;
+                var counterWhile = 1;
+                while ((counterWhile < 100) && (FindEntity)) {
+                    if ((viewer.clock.currentTime > entitiesArray[randomNumber].availability.start) && (viewer.clock.currentTime < entitiesArray[randomNumber].availability.stop)) {
+                        viewer.trackedEntity = entitiesArray[randomNumber];
+                        FindEntity = 0;
+                    } else {
+                        randomNumber = Math.floor(Math.random() * entitiesArray.length);
+                        counterWhile = counterWhile + 1;
+                    }
+                }
+            }
+            if ((event.key === 'f')) {
+                var randomNumber = Math.floor(Math.random() * entitiesArray.length);
+                var FindEntity = 1;
+                var counterWhile = 1;
+                while ((counterWhile < 100) && (FindEntity)) {
+                    if ((viewer.clock.currentTime > entitiesArray[randomNumber].availability.start) && (viewer.clock.currentTime < entitiesArray[randomNumber].availability.stop)) {
+                        viewer.zoomTo(entitiesArray[randomNumber]);
+                        FindEntity = 0;
+                    } else {
+                        randomNumber = Math.floor(Math.random() * entitiesArray.length);
+                        counterWhile = counterWhile + 1;
+                    }
+                }
+            }
+
+        }
+        function onKeyUp(event) {
+            keyState[event.key] = false;
+        }
+        var pitchRate = 0.04;
+        var rollRate = 0.04;
+        var yawRate = 0.04;
+        var moveSpeed = 30.0;
+        var heightAdjustmentSpeed = 5.0;
+        var pitch = initialOrientation.pitch;
+        var roll = initialOrientation.roll;
+        var yaw = initialOrientation.heading;
+        var height = initialPosition.height;
+        var keyState = {
+            'w': false,
+            's': false,
+            'a': false,
+            'd': false,
+            'q': false,
+            'e': false,
+            'ArrowUp': false,
+            'ArrowDown': false,
+            'ArrowLeft': false,
+            'ArrowRight': false,
+            'PageUp': false,
+            'PageDown': false,
+        };
+        window.addEventListener('keydown', onKeyDown);
+        window.addEventListener('keyup', onKeyUp);
+        function handleMovement() {
+            if (!NavigationOn) {
+                console.log('keyboard is off.');
+                keyState = {};
+                window.removeEventListener('keydown', onKeyDown);
+                window.removeEventListener('keyup', onKeyUp);
+                return;
+            }
+            if (keyState['w']) {
+                pitch += pitchRate;
+            }
+            if (keyState['s']) {
+                pitch -= pitchRate;
+            }
+            if (keyState['a']) {
+                roll += rollRate;
+            }
+            if (keyState['d']) {
+                roll -= rollRate;
+            }
+            if (keyState['q']) {
+                yaw += yawRate;
+            }
+            if (keyState['e']) {
+                yaw -= yawRate;
+            }
+            if (keyState['ArrowUp']) {
+                camera.moveForward(moveSpeed);
+            }
+            if (keyState['ArrowDown']) {
+                camera.moveBackward(moveSpeed);
+            }
+            if (keyState['ArrowLeft']) {
+                camera.moveLeft(moveSpeed);
+            }
+            if (keyState['ArrowRight']) {
+                camera.moveRight(moveSpeed);
+            }
+            if (keyState['PageUp']) {
+                camera.moveUp(heightAdjustmentSpeed);
+            }
+            if (keyState['PageDown']) {
+                camera.moveDown(heightAdjustmentSpeed);
+            }
+            camera.setView({
+                orientation: {
+                    pitch: pitch,
+                    roll: roll,
+                    heading: yaw,
+                },
+            });
+            viewer.render();
+            requestAnimationFrame(handleMovement);
+        }
+        if (NavigationOn) {
+            handleMovement();
+        }
+```
+
+<br />
+#### (v) User Interface and React Capabilities
+
+**User Interface and React Capabilities** The user interface (UI) plays a crucial role in this project, providing an interactive environment for users to configure and run simulations. Built with React, the UI offers several key benefits:
+
+- **User-Defined Parameters:** Users have the ability to control various simulation parameters through the UI. This includes:
+    - *Airspace Size*: Specify the dimensions of the virtual airspace where the aircraft will operate.
+    - *Maximum Aircraft Speed*: Define the upper limit for the speed of aircraft within the simulation.
+    - *Safety Radius*: Set a minimum safe distance between aircraft to avoid collisions.
+    - *Aircraft Demand*: Determine the number of aircraft participating in the simulation, influencing air traffic density.
+- **Dynamic Simulation Control:** Users can adjust these parameters directly in the UI, allowing for on-the-fly modification and exploration of different scenarios. As these user inputs change, the UI sends the updated configuration to the server.
+- **Server-Side Simulation Execution:** The UI acts as a control panel, sending the user-defined parameters to the server. The server then executes the simulation based on these settings, calculating aircraft trajectories and interactions.
+- **CesiumJS Visualization:** Once the simulation is complete, the results are visualized within the CesiumJS environment. This allows users to observe the simulated air traffic patterns and analyze the impact of their configuration choices.
+- **Modular Design with React:** React's component-based architecture makes the UI modular and extensible. This facilitates future enhancements, such as adding new configuration options or integrating with different visualization tools.
+
+**Key Strengths of React UI:** The choice of React as the UI development framework offers several advantages:
+
+- **Declarative Programming:** React allows developers to define the desired UI state declaratively, leading to cleaner and more maintainable code.
+
+- **Component Reusability:** UI components can be reused throughout the application, promoting code efficiency and consistency.
+
+- **Virtual DOM:** React's virtual DOM optimization ensures efficient updates to the UI, resulting in a smooth and responsive user experience.
+
+By combining user-defined parameters, server-side simulation execution, and CesiumJS visualization, this project's UI empowers users to experiment with different air traffic scenarios and gain valuable insights. The modularity offered by React lays the foundation for further UI enhancements in the future.
+
+<br />
+
+<br />
+### Conclusion
+This project demonstrates a powerful framework for simulating and visualizing air traffic scenarios using CesiumJS and a user-friendly React-based UI. By enabling users to define key parameters like airspace size, aircraft speed, safety radius, and demand, the UI facilitates exploration of diverse air traffic conditions. The modular design of the React UI allows for future enhancements, paving the way for a more comprehensive simulation environment.
 
 <br />
 
 <br />
 ### Future Directions
 
+Several exciting possibilities exist for expanding the capabilities of this project:
 
+- **Enhanced User Controls:**
 
+    - **Advanced Input Features:** Explore the use of sliders, dropdowns, or input fields for more granular control over simulation parameters.
 
+    - **Scenario Analysis Tools:** Implement functionalities to compare and analyze results from multiple simulations, allowing for deeper insights.
 
+- **Real-Time Analytics:**
 
+    - **Traffic Characteristics Visualization:** Integrate analytics views within the UI to dynamically display key air traffic metrics like average speed, density, and potential conflicts.
 
+    - **Aircraft Data Integration:** Overlay aircraft-specific data (e.g., altitude, fuel level) onto the visualization for real-time situational awareness.
 
+- **Interactive Features:**
 
+    - **Drag-and-Drop Functionality:** Empower users to modify aircraft positions or flight paths directly within the CesiumJS environment using drag-and-drop actions.
 
+    - **Airspace Selection:** Provide options for users to choose specific airspace configurations or load pre-defined scenarios for investigation.
 
+- **Advanced Simulation Capabilities:**
 
+    - **Vertiport Integration:** Simulate the inclusion of vertiports (vertical takeoff and landing pads) to explore urban air mobility scenarios.
 
+    - **Dynamic Origin-Destination (OD) Modification:** Allow users to adjust aircraft origin and destination points during simulation for more dynamic traffic patterns.
 
+By implementing these enhancements, the project can evolve into a powerful tool for air traffic management professionals, researchers, and urban planners, enabling them to analyze complex scenarios, optimize traffic flow, and plan for the future of air travel.
