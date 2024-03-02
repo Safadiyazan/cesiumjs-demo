@@ -128,9 +128,144 @@ Learn more about CesiumJS: https://cesium.com/platform/cesium-ion/.
 
 ### Main Features
 
-#### Database Sync
+#### (i) Data Synchronization from MATLAB to CesiumJS
 
-#### XYZ -> NWD
+The LAATSim tool encapsulates several critical parameters exported from the MATLAB simulation, serving as the foundation for visualizing the scenario in CesiumJS. Let's delve into the key data structures:
+
+- **`SimInfo`:** This object stores vital simulation time information, including:
+  - `tf`: The final simulation time (in seconds).
+  - `dtS`: The simulation time step (in seconds).
+  - `x`, `y`, `z`: Arrays containing the aircraft's position coordinates throughout the simulation (in meters). These arrays correspond to the time steps `dtS` defined in `tf`, and are stored in the array `pdt`.
+  - `stat`: An integer representing the aircraft's flight status (0: inactive, 1: active, 2: arrived). These arrays correspond to the time steps `dtS` defined in `tf`, and are stored in the array `statusdt`.
+
+- **`Settings`:** This object houses configuration details for the simulated airspace, comprising:
+  - `dx`: The size of the airspace along the x-axis (in meters).
+  - `dy`: The size of the airspace along the y-axis (in meters).
+  - `dz`: The size of the airspace along the z-axis (in meters).
+  - `as`: Additional airspace configuration settings (specific details might vary based on your simulation).
+
+- **`ObjAircraft`:** This crucial element is an array of objects, each representing an aircraft within the simulation. Each object encompasses the following properties:
+  - `tda`: The departure time of the aircraft (in seconds).
+  - `taa`: The arrival time of the aircraft (in seconds).
+  - `rs`: The safety radius of the aircraft (in meters).
+  - `rd`: The detection radius of the aircraft (in meters).
+
+
+To seamlessly visualize simulation results in CesiumJS, a robust mechanism synchronizes data between MATLAB and the web-based frontend. Here's a detailed walkthrough of the process:
+   - The core simulation runs in MATLAB, generating critical airspace data.
+   - The `ExportJSON` function (code snippet below) compiles essential parameters into a structured JSON file.
+
+```matlab
+function [scenarioName] = ExportJSON(SceStr,SimInfo,ObjAircraft,TFC,EC,Settings)
+M = SimInfo.M(end); % number of aircraft
+full_pdt = full(SimInfo.pdt)'; % tranform position matrix
+full_stat = full(SimInfo.statusdt)'; % transform status matrix
+ObjAircraftData = cell(1, M);
+for i = 1:M
+    x = double(full_pdt(3*i-2, :)); % x position [m]
+    y = double(full_pdt(3*i-1, :)); % y position [m]
+    z = double(full_pdt(3*i, :)); % z position [m]
+    stat = double(full_stat(i, :));  % aircraft flight staus {0-inactive, 1-active, 2-arrived}
+    ObjAircraftData{i} = struct(...
+    'stat', stat,...
+    'tda',max(ObjAircraft(i).tdp,0),... % aircraft departure time [s]
+    'taa',min(ObjAircraft(i).taa,SimInfo.tf),... % aircraft arrival time [s]
+    'rs',ObjAircraft(i).rs,... % aircraft safety radius [m]
+    'rd',ObjAircraft(i).rd,... % aircraft detection radius [m]
+    'x', x,...
+    'y', y,...
+    'z', z...
+    );
+end
+Data.SimInfo.tf = SimInfo.tf; % simulation final time [s]
+Data.SimInfo.dtS = SimInfo.dtS; % simulation time step [s]
+Data.Settings.dx = Settings.Airspace.dx; % Airspace x-axis size [m]
+Data.Settings.dy = Settings.Airspace.dy; % Airspace y-axis size [m]
+Data.Settings.dz = Settings.Airspace.dz; % Airspace z-axis size [m]
+% Export Object to JSON file
+Data.ObjAircraft = ObjAircraftData;
+json_str = jsonencode(Data);
+TimestampNow = now;
+scenarioName = [SceStr ' '  datestr(TimestampNow,'yyyy-mm-dd HH:MM')];
+file_name = ['./public/Outputs/' 'SimOutput_' SceStr '_'  datestr(TimestampNow,'yyyymmdd_hhMM') '.json'];
+fid = fopen(file_name, 'w');
+if fid > 0
+    fwrite(fid, json_str, 'char');
+    fclose(fid);
+    disp(['Data saved to ' file_name]);
+else
+    disp('Error opening the file for writing.');
+end
+end
+```
+
+**Benefits of this Approach:**
+
+- **Streamlined Data Transfer:** JSON, a lightweight and cross-platform format, facilitates efficient transfer between MATLAB and the web environment.
+
+- **Structured Data Representation:** JSON's hierarchical structure enables comprehensive and organized storage of simulation parameters.
+
+- **Seamless Integration with CesiumJS:** CesiumJS directly accepts parsed JSON data, enabling the creation of rich and interactive visualizations.
+
+**To conclude,** this robust synchronization process bridges the gap between MATLAB's simulation capabilities and CesiumJS's visualization prowess. It guarantees a seamless flow of data, empowering users to explore and analyze air mobility scenarios within a dynamic and informative 3D environment.
+
+#### (ii) Converting XYZ Positions to Geospatial Coordinates (Longitude, Latitude, Height)
+
+A crucial feature within the application involves transforming XYZ positions obtained from the simulation into meaningful geospatial coordinates (longitude, latitude, and height). This conversion process enables the visualization of aircraft trajectories within a real-world context on the CesiumJS map.
+
+The Conversion Workflow:
+
+1. **Iterating Through Aircraft Data:** The code snippet below iterates through the `ObjAircraft` array in the JSON data using `forEach`. This loop processes each aircraft object and its associated XYZ position data. However, the provided code limits the processing to a specific range (index 0 to 299) for demonstration purposes and runtime performance. You might want to adjust this based on your actual data structure.
+``` javascript
+data.ObjAircraft.forEach((ObjAircraft, index) => {
+  if ((index > 0) & (index < 300)) { // Adjust the index range as needed
+    // ... conversion logic here
+  }
+});
+```
+
+2. **Trajectory Point Generation:** Inside the loop, a new array named `trajectoryPositions` is created to store the converted geospatial coordinates for each aircraft. The code iterates through the aircraft's XYZ position arrays (`ObjAircraft.x`, `ObjAircraft.y`, `ObjAircraft.z`) with a defined step size (`dt`). For each iteration:
+
+    - The `computeNewPoint` function is called, taking the center point (`center`) and the current XYZ offsets (`dx`, `dy`, `dz`) as arguments.
+
+    - The resulting converted point (`currentPosition`) is then pushed into the `trajectoryPositions` array.
+
+``` javascript
+const trajectoryPositions = [];
+for (let i = 0; i < ObjAircraft.x.length; i += dt) {
+  const currentPosition = computeNewPoint(center, ObjAircraft.x[i], ObjAircraft.y[i], ObjAircraft.z[i]);
+  trajectoryPositions.push({
+    longitude: CesiumMath.toDegrees(Cartographic.fromCartesian(currentPosition).longitude),
+    latitude: CesiumMath.toDegrees(Cartographic.fromCartesian(currentPosition).latitude),
+    height: Cartographic.fromCartesian(currentPosition).height
+  });
+}
+```
+
+3. **`computeNewPoint` Function:** This function takes the center point of the simulated airspace (`center`) and the XYZ offsets (`dx`, `dy`, `dz`) as input. Here's a breakdown of its functionality:
+
+    - Offset Matrix Creation: The function utilizes `Transforms.eastNorthUpToFixedFrame` from the Cesium library. This method generates a transformation matrix that considers the Earth's curvature (using the WGS84 ellipsoid) to convert offsets relative to East, North, and Up (AGL) into a fixed-frame coordinate system.
+
+    - Offset Point Calculation: The provided offsets (`dx`, `dy`, `dz`) are multiplied by the created transformation matrix (`offsetMatrix`) using `Matrix4.multiplyByPoint`. This operation effectively applies the East, North, Up offsets to the center point, resulting in the new converted point (`offsetPoint`) in the fixed-frame coordinate system.
+
+``` javascript
+function computeNewPoint(center, dx, dy, dz) {
+  var offsetMatrix = Transforms.eastNorthUpToFixedFrame(center, Ellipsoid.WGS84, new Matrix4());
+  var offsetPoint = Matrix4.multiplyByPoint(offsetMatrix, new Cartesian3(dx, dy, dz), new Cartesian3());
+  return offsetPoint;
+}
+```
+**Benefits of this Approach:**
+
+- **Real-World Context:** By transforming simulated XYZ data into longitude, latitude, and height, the application enables visualization of aircraft trajectories within a familiar geographic context. This enhances user comprehension and facilitates the analysis of air traffic patterns within the simulated airspace.
+
+- **Accuracy:** The integration of Cesium's geospatial transformation functions ensures accurate conversion, considering the Earth's curvature. This guarantees that the displayed aircraft positions correspond to their actual locations within the real world.
+
+- **Flexibility:** This approach is adaptable to various simulation scenarios. The `computeNewPoint` function can be tailored to handle different coordinate system origins or offset calculation methods based on your specific simulation setup.
+
+- **Seamless Integration with CesiumJS:** The converted geospatial coordinates (longitude, latitude, height) directly align with the data format expected by CesiumJS. This streamlined integration facilitates the creation of visually compelling and informative 3D visualizations of the simulated air traffic.
+
+**To conclude,** this conversion approach empowers you to bridge the gap between the simulated world and the real world, fostering a more intuitive and informative user experience for analyzing and understanding air mobility scenarios. A critical element in this method is the `computeNewPoint` function. It leverages Cesium's geospatial transformation capabilities to account for the Earth's curvature and convert the simulated XYZ positions, which are relative to a potentially arbitrary origin, into meaningful longitude, latitude, and height values that can be accurately visualized on the CesiumJS model.
 
 #### Keyboard
 
