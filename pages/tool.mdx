@@ -1,6 +1,123 @@
-More info will be published soon.
+# LAATSim: The AAM Simulation Tool Shaping the Future of Urban Mobility
 
-## External Component
+The landscape of urban transportation is on the verge of a revolution with the rise of Advanced Air Mobility (AAM) systems. These low-altitude passenger and delivery vehicles hold immense potential, but require sophisticated tools to propel research and development forward.
+
+**Introducing LAATSim, the groundbreaking AAM simulation tool.** This innovative software meticulously replicates AAM systems in a digital environment, enabling users to model and analyze their behavior and performance with unparalleled accuracy.
+
+**Empowering Stakeholders in the AAM Ecosystem.** LAATSim's modular framework empowers a diverse range of AAM stakeholders. Users can leverage a comprehensive toolkit and library to design and plan AAM operations, while developers have the freedom to contribute and build microservices through an open API gateway.
+
+**More than a Tool, It's a Catalyst for Collaboration.** LAATSim sets the stage for groundbreaking research in the burgeoning field of AAM. We aim to inspire collaboration on a national and global scale, fostering a platform for innovation and advancement within the entire AAM ecosystem.
+
+## Mission
+
+The emergence of Advanced Air Mobility (AAM) holds immense potential to revolutionize urban transportation. However, integrating these low-altitude passenger and delivery vehicles into cityscapes requires navigating a complex landscape of challenges.
+
+**At LAATSim, our mission is to empower stakeholders across the AAM ecosystem by providing a groundbreaking simulation tool that tackles these critical challenges head-on.**
+
+**Understanding the Challenges**
+
+* **Authentic Environment Creation:**  Accurately replicating real-world conditions is essential for reliable simulation and informed decision-making. LAATSim is meticulously designed to deliver an unparalleled level of authenticity, enabling users to analyze AAM behavior and performance with confidence.
+* **Data-Driven Insights:**  Effective AAM development hinges on robust data analysis. LAATSim's comprehensive data visualization capabilities provide stakeholders with the insights they need to optimize operations and unlock new opportunities.
+* **Scalability and Adaptability:**  AAM research requires flexibility. LAATSim's modular architecture allows users to customize simulations and integrate existing solutions, ensuring the tool scales effectively with evolving research needs.
+* **Human Behavior Integration:**  Understanding human behavior within AAM systems is crucial. LAATSim facilitates the exploration of how individuals and communities interact with AAM vehicles, fostering the development of safe and user-centric solutions.
+
+**LAATSim: A Catalyst for Collaboration**
+
+By addressing these challenges, LAATSim empowers a diverse range of stakeholders, including:
+
+* **Academia and Research Centers:**  LAATSim equips researchers to explore critical areas like human factors, modeling development, and overall AAM system design.
+* **Regulators:** Our tool provides a platform to simulate complex airspace scenarios, informing the development of effective regulations for safe and efficient AAM integration.
+* **Industry Players:** LAATSim equips AAM system and aircraft designers with a comprehensive platform to validate their designs within a realistic operational environment, accelerating the path to commercialization.
+
+Through collaboration and a commitment to overcoming challenges, LAATSim fosters continuous progress towards a thriving AAM ecosystem that benefits all stakeholders.
+
+## Software Design
+
+LAATSim's core revolves around a modular framework designed to empower users with a customizable and extensible platform for simulating UAM operations. This section delves into the key components and functionalities that facilitate a comprehensive simulation environment.
+
+**Modular Architecture for Flexibility**
+
+LAATSim leverages a modular architecture, allowing users to tailor simulations to specific needs. This is achieved through:
+
+* **Microservices:** The framework utilizes a collection of microservices, essentially independent software units, each encapsulating a specific functionality within the simulation. These microservices can be easily integrated or replaced, enabling customization and future expansion.
+* **Open API Gateway:** Developers can contribute new functionalities by developing and integrating their own microservices through a secure API gateway. This fosters a collaborative environment and promotes continuous improvement of the framework.
+* **Plugin Support:** The framework allows for the integration of plugins, further extending its capabilities. These plugins can address specific UAM-related needs, such as advanced visualization tools or specialized data analysis modules.
+
+**Core System: The Orchestrator**
+
+The core system acts as the central orchestrator, managing data flow and communication within the framework. Here's a breakdown of its key responsibilities:
+
+* **Microservice and Database Management:** The core system manages the interaction between user requests, microservices, and the databases. It retrieves relevant microservices and data based on the user's simulation requirements.
+* **Model Classification:** Microservices and databases are categorized into three main groups: Modeling (libraries for simulation components), Ruling (standardized models aligned with regulations), and Scenarios (user input and existing data defining the simulation environment).
+* **API Gateway Communication:** The core system interacts with the user interface through an API gateway, facilitating data exchange and delivering simulation results.
+
+**User Interface: Tailored Insights**
+
+The user interface (UI) serves as the primary interaction point for users. It provides a web-based platform for:
+
+* **Customizable Views:** The UI can be customized based on the user's sector (industry, academia, regulation, operations). This ensures that relevant insights and data visualizations are presented effectively.
+* **Data Export:** Users can export simulation outputs, including data and reports, for further analysis and documentation.
+
+**Microservices: Building Blocks of Simulation**
+
+Microservices are the building blocks for simulating UAM operations. Each microservice represents a set of libraries and applications encompassing specific models and algorithms. These can include:
+
+* **Human Behavior Modeling:** Models that simulate how humans interact with the UAM system, including pilots, air traffic controllers, and passengers.
+* **Aircraft Dynamics Modeling:** Models that capture the flight characteristics and performance of UAM vehicles.
+* **Airspace Management Modeling:** Models that simulate airspace utilization, traffic flow, and potential conflicts.
+* **Subsystems Modeling:** Models that represent specific subsystems within the UAM system, such as propulsion systems or communication networks.
+
+**Database Management: Storage and Security**
+
+The framework utilizes a robust database system to store various data elements crucial for simulations:
+
+* **Settings and Parameters:** Databases store various aircraft, airspace, traffic, and simulation settings used for analysis. User inputs are also stored in designated databases with appropriate security measures.
+* **Real-Time Data Integration:** In real-time operation scenarios, encrypted measurement data can be stored in a dedicated database. This data can be anonymized and used for future research and development efforts.
+* **Compliance with Regulations:** Data encryption adheres to local regulations, ensuring data privacy and security.
+
+**Cloud-Based Infrastructure: Scalability and Performance**
+
+LAATSim leverages a cloud-based server infrastructure to provide:
+
+* **Virtual Private Cloud (VPC):**  The VPC allocates dedicated resources for each user's simulation, enabling high-performance computing for complex scenarios and real-time operations.
+* **Seamless User Experience:** The user interface functions as a server-side web application, eliminating the need for users to install specific software. Additionally, the VPC grants users access to relevant data based on their permissions. 
+
+**Openness for Collaboration and Innovation**
+
+LAATSim fosters collaboration and innovation through the following features:
+
+* **Developer Access:** External developers can leverage the API gateway to build and contribute new microservices, enriching the framework's functionalities.
+* **Plugin Integration:** Licensed plugins can be integrated to address specific user needs, further enhancing the simulation capabilities.
+
+**Conclusion**
+
+LAATSim's software design prioritizes modularity, flexibility, and user experience. By leveraging microservices, open APIs, and a cloud-based infrastructure, the framework empowers users to conduct comprehensive UAM simulations, fostering informed decision-making and accelerating the development of this promising transportation technology. The proposed software design is shown in Figure 1.
+![LAATSim simulation software design](./figures/Framework.png)
+
+
+
+## CesiumJS Integration
+
+### Main Functions
+
+#### Database Sync
+
+#### XYZ -> NWD
+
+#### Keyboard
+
+#### User Inputs and React 
+
+### UI
+
+### Future Directions
+
+
+
+
+
+
+
 
 
 
