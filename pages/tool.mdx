@@ -33,7 +33,7 @@ Through collaboration and a commitment to overcoming challenges, LAATSim fosters
 
 ## Software Design
 
-LAATSim's core revolves around a modular framework designed to empower users with a customizable and extensible platform for simulating UAM operations. This section delves into the key components and functionalities that facilitate a comprehensive simulation environment.
+LAATSim's core revolves around a modular framework designed to empower users with a customizable and extensible platform for simulating AAM operations. This section delves into the key components and functionalities that facilitate a comprehensive simulation environment.
 
 **Modular Architecture for Flexibility**
 
@@ -41,7 +41,7 @@ LAATSim leverages a modular architecture, allowing users to tailor simulations t
 
 * **Microservices:** The framework utilizes a collection of microservices, essentially independent software units, each encapsulating a specific functionality within the simulation. These microservices can be easily integrated or replaced, enabling customization and future expansion.
 * **Open API Gateway:** Developers can contribute new functionalities by developing and integrating their own microservices through a secure API gateway. This fosters a collaborative environment and promotes continuous improvement of the framework.
-* **Plugin Support:** The framework allows for the integration of plugins, further extending its capabilities. These plugins can address specific UAM-related needs, such as advanced visualization tools or specialized data analysis modules.
+* **Plugin Support:** The framework allows for the integration of plugins, further extending its capabilities. These plugins can address specific AAM-related needs, such as advanced visualization tools or specialized data analysis modules.
 
 **Core System: The Orchestrator**
 
@@ -60,12 +60,12 @@ The user interface (UI) serves as the primary interaction point for users. It pr
 
 **Microservices: Building Blocks of Simulation**
 
-Microservices are the building blocks for simulating UAM operations. Each microservice represents a set of libraries and applications encompassing specific models and algorithms. These can include:
+Microservices are the building blocks for simulating AAM operations. Each microservice represents a set of libraries and applications encompassing specific models and algorithms. These can include:
 
-* **Human Behavior Modeling:** Models that simulate how humans interact with the UAM system, including pilots, air traffic controllers, and passengers.
-* **Aircraft Dynamics Modeling:** Models that capture the flight characteristics and performance of UAM vehicles.
+* **Human Behavior Modeling:** Models that simulate how humans interact with the AAM system, including pilots, air traffic controllers, and passengers.
+* **Aircraft Dynamics Modeling:** Models that capture the flight characteristics and performance of AAM vehicles.
 * **Airspace Management Modeling:** Models that simulate airspace utilization, traffic flow, and potential conflicts.
-* **Subsystems Modeling:** Models that represent specific subsystems within the UAM system, such as propulsion systems or communication networks.
+* **Subsystems Modeling:** Models that represent specific subsystems within the AAM system, such as propulsion systems or communication networks.
 
 **Database Management: Storage and Security**
 
@@ -91,14 +91,42 @@ LAATSim fosters collaboration and innovation through the following features:
 
 **Conclusion**
 
-LAATSim's software design prioritizes modularity, flexibility, and user experience. By leveraging microservices, open APIs, and a cloud-based infrastructure, the framework empowers users to conduct comprehensive UAM simulations, fostering informed decision-making and accelerating the development of this promising transportation technology. The proposed software design is shown in Figure 1.
+LAATSim's software design prioritizes modularity, flexibility, and user experience. By leveraging microservices, open APIs, and a cloud-based infrastructure, the framework empowers users to conduct comprehensive AAM simulations, fostering informed decision-making and accelerating the development of this promising transportation technology. The proposed software design is shown in Figure 1.
+
 ![LAATSim simulation software design](./figures/Framework.png)
+**Figure 1. LAATSim Simulation Software Design**
 
 
+## Application
 
-## CesiumJS Integration
+### Building the LAATSim with CesiumJS
 
-### Main Functions
+The LAATSim is a powerful web-based application designed to streamline and enhance air mobility scenario modeling, analysis, and optimization. This modular tool leverages the strengths of various technologies to deliver a user-friendly and visually immersive experience. Let's delve into how CesiumJS plays a crucial role in this application:
+
+**Realistic Airspace Environment:**
+
+CesiumJS, a powerful geospatial visualization library, provides the foundation for rendering a realistic 3D representation of the airspace. This allows users to visualize simulated scenarios within a familiar and geographically accurate context. Imagine seeing low-altitude aircraft trajectories overlaid on a digital map with detailed terrain, buildings, and other relevant environmental features. CesiumJS empowers users to intuitively grasp the spatial relationships and potential interactions within the airspace.
+
+**Interactive Visualization:**
+
+CesiumJS offers extensive capabilities for interactive visualization. Users can zoom, pan, and rotate the 3D airspace environment, gaining a comprehensive understanding of the simulated scenarios from various perspectives. This interactivity facilitates in-depth analysis and exploration of air traffic patterns, potential conflicts, and overall airspace utilization.
+
+**Data Integration:**
+
+CesiumJS seamlessly integrates with other technologies used in the LAATSim. For instance, flight path data generated by the simulation engine can be seamlessly visualized within the CesiumJS-powered 3D environment. This allows users to directly observe the simulated behavior of low-altitude aircraft within the context of the realistic airspace.
+
+**Enhanced User Experience:**
+
+The integration of CesiumJS significantly elevates the user experience of the LAATSim. By replacing traditional 2D visualizations with a dynamic 3D environment, CesiumJS fosters a more intuitive and engaging experience for users. This visual representation aids in comprehending complex air traffic scenarios and facilitates informed decision-making.
+
+CesiumJS plays a vital role in the LAATSim by providing a realistic, interactive, and user-friendly platform for visualizing and analyzing air mobility scenarios. It empowers users with a powerful tool to explore, optimize, and ultimately pave the way for the future of efficient and safe air traffic management.
+
+![Screenshot of LAATSim](./figures/LAATSimUI.png)
+**Figure 2. LAATSim intergration with CesiumJS - User interface**
+
+Learn more about CesiumJS: https://cesium.com/platform/cesium-ion/.
+
+### Main Features
 
 #### Database Sync
 
@@ -108,7 +136,7 @@ LAATSim's software design prioritizes modularity, flexibility, and user experien
 
 #### User Inputs and React 
 
-### UI
+#### UI
 
 ### Future Directions
 
