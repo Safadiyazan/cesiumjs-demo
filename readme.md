@@ -1,5 +1,4 @@
-# Introduction
- 
+
 Project Name: 3D Visualization of modeling multimodal mobility.
 
 Project goal: The project aims to visualize multimodal mobility modeling using the [CesiumJS](https://cesium.com/platform/cesiumjs/) solution.
