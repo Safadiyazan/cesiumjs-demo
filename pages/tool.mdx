@@ -359,8 +359,79 @@ data.ObjAircraft.forEach((ObjAircraft, index) => {
 
 <br />
 
+#### (iii) Simulating Heterogeneous Aircraft
 
-#### (iii) Visualizing Airspace Structure
+This section explores the capability of visualizing diverse aircraft types within the simulation environment. This functionality is facilitated by the modular design of the Cesium viewer and the `AddAircraftMotion` function. Cesium's `Model` object allows for dynamic loading of 3D models from various file formats like GLB and glTF. This modularity enables the simulation to seamlessly integrate different aircraft models based on user preferences or pre-defined scenarios.
+
+**Implementation with `AddAircraftMotion`**
+
+The `AddAircraftMotion` function plays a crucial role in incorporating these diverse models. Here's a code snippet demonstrating how the function utilizes model URLs and scaling to visualize different aircraft:
+
+1. **Model Selection:** The code defines a var called AircraftURL that stores the path to the 3D model file. Based on a randomly chosen AircraftModelIndex, the script selects the appropriate model URL (e.g., /YS_VTOL.glb for a VTOL aircraft).
+
+2. **Model Scaling:** The AircraftURLScale variable adjusts the size of the loaded model. This might be necessary to ensure different aircraft types appear visually consistent within the simulation.
+
+3. **Entity Creation:** The `viewer.entities.add` function creates a new entity representing the aircraft within the Cesium viewer. The entity configuration includes:
+    - `name`: A descriptive name for the aircraft.
+    - `position`: The initial position of the aircraft in the simulation space.
+    - `model`: This property specifies the loaded model using the dynamic AircraftURL and scaling factor.
+    - `path`: A visual path indicating the aircraft's movement trajectory.
+    - `orientation`: A callback function (`calculateOrientation`) determines the aircraft's orientation based on its position.
+    - `allowPicking`: Enables interaction with the aircraft entity within the Cesium viewer.
+
+<div align="center">
+**Code 6.** *Simulating Heterogeneous Aircraft [javascript]*
+</div>
+``` javascript
+var AircraftURL = "/YS_VTOL.glb";
+var AircraftURLScale = 2;
+var AircraftModelIndex = Math.floor(Math.random() * 3) + 1;
+
+switch (AircraftModelIndex) {
+  case 1:
+    AircraftURL = "/YS_VTOL.glb";
+    AircraftURLScale = 1;
+    break;
+  case 2:
+    AircraftURL = "/YS_Drone.glb";
+    AircraftURLScale = 1;
+    break;
+  default:
+    AircraftURL = "/YS_VTOL.glb";
+    AircraftURLScale = 1;
+}
+
+const airplaneEntity = viewer.entities.add({
+  name: `Aircraft: ${AircraftIndex}, Model`,
+  description: "",
+  position: positionProperty,
+  model: {
+    uri: AircraftURL,
+    scale: AircraftURLScale
+  },
+  path: new PathGraphics({ width: 0.2 }),
+  orientation: calculateOrientation(positionProperty), // Use a callback for orientation
+  allowPicking: true,
+});
+```
+
+**Benefits of Heterogeneous Aircraft Simulation:**
+
+By leveraging the modularity of Cesium and the `AddAircraftMotion` function, this approach allows for the visualization of various aircraft types within the same simulation environment. This capability can be beneficial for:
+
+- Scenario Planning: Simulating diverse air traffic scenarios involving different aircraft categories (e.g., VTOLs, drones, conventional airplanes).
+- Performance Comparison: Analyzing the behavior and interactions of different aircraft types within the simulated airspace.
+
+This ability to depict heterogeneous aircraft enriches the simulation experience and paves the way for more comprehensive air traffic management simulations. It's important to note that simulating heterogeneous traffic with considerations for different aircraft sizes and maximum speeds is already investigated in LAATSim tool and its research. This project complements such efforts by providing a user-friendly and visually compelling platform for exploring heterogeneous aircraft behavior.
+
+<br />
+<div align="center">
+![Screenshot of LAATSim](./figures/LAATSimUAVVTOLNYCView.png)
+**Figure 4.** *Different Aircraft 3D Model visualized in CesiumJS viewer*
+</div>
+
+<br />
+#### (iv) Visualizing Airspace Structure
 
 This section describes the code for visualizing airspace structure within the CesiumJS project. CesiumJS is a powerful open-source JavaScript library designed to create interactive 3D globes and maps within web browsers. It leverages WebGL for hardware-accelerated graphics, enabling smooth and performant geospatial data visualization.
 
@@ -375,7 +446,7 @@ This section describes the code for visualizing airspace structure within the Ce
 * `plotPoint` Creates a visual point representation on the map.
 
 <div align="center">
-**Code 6.** *Visualizing Airspace Structure [javascript]*
+**Code 7.** *Visualizing Airspace Structure [javascript]*
 </div>
 ``` javascript
 function PlotAirspace(center) {
@@ -435,25 +506,189 @@ PlotAirspace(center);
 <br />
 <div align="center">
 ![Screenshot of LAATSim](./figures/LAATSimAirspaceNYC.png)
-**Figure 4.** *Aircraft structure visualized in CesiumJS viewer with `Center=(-73.984359, 40.751718,480)`*
+**Figure 5.** *Airspace structure visualized in CesiumJS viewer with `Center=(-73.984359, 40.751718,480)`*
 </div>
 
 <br />
 <div align="center">
 ![Screenshot of LAATSim](./figures/LAATSimAirspaceZurich.png)
-**Figure 5.** *Aircraft structure visualized in CesiumJS viewer with `Center=(8.545094,47.373878,480)`*
+**Figure 6.** *Airspace structure visualized in CesiumJS viewer with `Center=(8.545094,47.373878,480)`*
 </div>
 
 <br />
 <div align="center">
 ![Screenshot of LAATSim](./figures/LAATSimAirspaceDubai.png)
-**Figure 6.** *Aircraft structure visualized in CesiumJS viewer with `Center=(55.216305,25.196254,480)`*
+**Figure 7.** *Airspace structure visualized in CesiumJS viewer with `Center=(55.216305,25.196254,480)`*
 </div>
-
 <br />
 
 
-#### (iv) Interactive Navigation within Airspace Using Keyboard Controls
+#### (v) Simulating with City Selection
+This section explores the visualization of airspace structures within the simulation environment. CesiumJS, a powerful geospatial visualization library, provides the foundation for rendering the airspace geometry. The user interface (UI) now incorporates a city selection dropdown component built with React (https://react.dev/). This dropdown allows users to choose from various pre-defined cityscapes, including:
+- NYC (New York City)
+- SF (San Francisco)
+- ZH (Zurich)
+- NZ (Nazareth)
+- HF (Haifa)
+- DXB (Dubai)
+
+
+<div align="center">
+**Code 8.** *React CityDropdown Component [javascript]*
+</div>
+``` javascript
+const CityDropdown = ({ handleDropdownCityChange, selectedCity }) => (
+  <div id="dropdown-city-container">
+    <span className="dropdown-city-label">Select City:</span>
+    <select id="dropdown-city" onChange={handleDropdownCityChange} value={selectedCity}>
+      <option value="NYC">NYC</option>
+      <option value="SF">SF</option>
+      <option value="ZH">ZH</option>
+      <option value="NZ">NZ</option>
+      <option value="HF">HF</option>
+      <option value="DXB">DXB</option>
+    </select>
+  </div>
+);
+
+export default CityDropdown;
+```
+
+**Modular Design and CesiumJS Integration:**
+
+The modular design of the codebase enables this dynamic city selection. Based on the user's chosen city, the application programmatically sets the initial camera position (`center`) within the Cesium viewer. This leverages CesiumJS's `Cartesian3.fromDegrees` function to specify the 3D coordinates for each city center.
+<div align="center">
+**Code 9.** *Load Simluation with City Selection [javascript]*
+</div>
+``` javascript
+switch (city) {
+  case "NYC":
+    var dz0 = 480;
+    var center = Cartesian3.fromDegrees(-73.98435971601633, 40.75171803897241, dz0); // NYC
+    break;
+  // ... other city cases
+}
+```
+This implementation showcases the power of modularity and CesiumJS capabilities. By integrating a user interface component and leveraging CesiumJS functions, the simulation environment can adapt to different cityscapes, enhancing the overall user experience.
+
+
+
+<br />
+<div align="center">
+<iframe width="560" height="315" src="https://www.youtube.com/embed/9u8E0_rc7FQ"></iframe>
+**Figure 8.** *Dropdown capabilites of city selection for simulation.*
+</div>
+<br />
+
+
+#### (vi) Displaying Live Aircraft Information
+This section showcases the integration of real-time aircraft information within the simulation environment. By leveraging CesiumJS functionalities, the user interface displays a comprehensive table containing various aircraft parameters during the simulation.
+
+**Key Aircraft Information Displayed:**
+
+- Aircraft ID
+- Current Time
+- Longitude & Latitude (degrees)
+- Height (meters)
+- Flight Time (seconds)
+- Distance Travelled (meters)
+- Speed (meters per second)
+
+**Implementation Details:**
+
+The `ViewerToolBar` React component manages the visibility of the information table. Clicking the checkbox beside "Show Info" toggles the table's display.
+
+The information update logic resides within the `viewer.clock.onTick.addEventListener` listener. This listener continuously checks the current simulation time (`viewer.clock.currentTime`). If the current time falls within a specific aircraft's availability window (`entitiesArray[randomNumber].availability`), the listener extracts various data points:
+
+- Position data using `positionPropertyArray[randomNumber].getValue(viewer.clock.currentTime)` and converting it to a Cartographic object using `Cartographic.fromCartesian`.
+- Flight time and distance travelled by calculating the difference between the current position and the inital values.
+- Speed by dividing the distance travelled by the flight time.
+
+Finally, the listener updates the HTML content within the `microtoolbar` element using `document.getElementById('microtoolbar').innerHTML`. This dynamically updates the information table with the latest aircraft data.
+
+**CesiumJS Integration:**
+
+This implementation highlights the power of CesiumJS for:
+
+- Cesium Clock: The `viewer.clock` object provides the current simulation time, crucial for determining aircraft availability and updating information.
+- SampledPositionProperty: This property allows for dynamic retrieval of an aircraft's position based on the simulation time.
+- Cartesian3 & Cartographic: CesiumJS offers functionalities for converting between Cartesian and geographic coordinates, enabling the display of longitude, latitude, and height.
+
+<div align="center">
+**Code 10.** *ViewerToolBar Component [javascript]*
+</div>
+``` javascript
+import React, { useState, useEffect } from 'react';
+import { ... other imports } from 'cesium';
+import { Button } from 'react-bootstrap';
+import { LoadSimulation } from '.././LoaderSimulation';
+
+const ViewerToolBar = ({ }) => {
+
+  const [isToolbarVisible, setIsToolbarVisible] = useState(true);
+
+  useEffect(() => {
+    // Executed only once after the component renders
+    const toolbar = document.getElementById('microtoolbar');
+    toolbar.style.display = isToolbarVisible ? 'block' : 'none';
+  }, [isToolbarVisible]);
+
+  const handleToolbarToggle = () => {
+    setIsToolbarVisible(!isToolbarVisible);
+  };
+
+  return (
+    <div id="macrotoolbar">
+      <input
+        type="checkbox"
+        id="showToolbar"
+        checked={isToolbarVisible} // Use checked attribute for controlled behavior
+        onChange={handleToolbarToggle}
+      />
+      <label htmlFor="showToolbar">Show Info</label>
+      <div id="microtoolbar">
+        <table id="aircraft-data-table">
+          <thead>
+            <tr>
+              <th>Parameter</th>
+              <th>Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            {/* Populated dynamically based on listener */}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+export default ViewerToolBar;
+```
+
+
+<div align="center">
+**Code 11.** *Event Listener Update Logic [javascript]*
+</div>
+``` javascript
+viewer.clock.onTick.addEventListener((clock) => {
+  if ((viewer.clock.currentTime > entitiesArray[randomNumber].availability.start) && (viewer.clock.currentTime < entitiesArray[randomNumber].availability.stop)) {
+    // ... logic to extract and update information in the table
+  } else {
+    // ... logic to display N/A values in the table
+  }
+});
+```
+By effectively combining these CesiumJS features with React functionalities, this enhancement provides valuable real-time aircraft information, enriching the user experience within the simulation environment.
+
+<br />
+<div align="center">
+<iframe width="560" height="315" src="https://www.youtube.com/embed/34VMlyG7GQU"></iframe>
+**Figure 9.** *Aircraft info capabilites during simulation.*
+</div>
+<br />
+
+#### (vii) Interactive Navigation within Airspace Using Keyboard Controls
 
 This section describes a powerful feature that enables you to navigate within the airspace visualized using CesiumJS and focus on specific aircraft. This functionality leverages CesiumJS's extensive camera control capabilities, providing an immersive and interactive user experience.
 
@@ -520,7 +755,7 @@ The provided code offers a foundation for keyboard navigation within your Cesium
 By leveraging CesiumJS's extensive camera control capabilities and these customization options, you can create a user-friendly and interactive experience for exploring airspace data within your web application.
 
 <div align="center">
-**Code 7.** *Navigation Keyboard Setting [javascript]*
+**Code 12.** *Navigation Keyboard Setting [javascript]*
 </div>
 ``` javascript
         function onKeyDown(event) {
@@ -658,7 +893,16 @@ By leveraging CesiumJS's extensive camera control capabilities and these customi
 ```
 
 <br />
-#### (v) User Interface and React Capabilities
+<div align="center">
+![Screenshot of LAATSim](./figures/KeyboardViewer.png)
+**Figure 10.** *Keyboard setting can be viewed inside the tool for users using a React component (checkbox).*
+</div>
+
+
+
+<br />
+<br />
+#### (viii) User Interface and React Capabilities
 
 **User Interface and React Capabilities** The user interface (UI) is crucial in this project, providing an interactive environment for users to configure and run simulations. Built with React, the UI offers several key benefits:
 
