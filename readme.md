@@ -1,10 +1,20 @@
+# 3D Visualization of Multimodal Mobility Modeling
 
-Project Name: 3D Visualization of modeling multimodal mobility.
+## Project Overview
+This project demonstrates the visualization of multimodal mobility modeling using [CesiumJS](https://cesium.com/platform/cesiumjs/). It integrates CesiumJS with traffic simulations to showcase agent movement within an urban environment.
 
-Project goal: The project aims to visualize multimodal mobility modeling using the [CesiumJS](https://cesium.com/platform/cesiumjs/) solution.
+## Author
+Yazan Safadi
 
-Author: Yazan Safadi
+## Purpose
+The goal of this documentation is to provide an example of integrating CesiumJS with traffic simulations. For detailed implementation and official guidelines, please refer to the [CesiumJS documentation](https://cesium.com/docs/).
 
-The following documentation aims to describe the possibility of integrating CesiumJS with traffic simulations to visualize agent movement within an urban environment. The information on this website is an example of one approach (which might not be ideal); for official documentation and implementation guidelines, please visit Cesium documentation.
+## Contact
+For questions or inquiries, feel free to reach out. Special thanks to the Cesium Team for their support and tools.
 
-Feel free to reach out for any questions or inquiries. The author would like to thank the Cesium Team for the support and opportunity.
+## Citation
+If you utilize this documentation, please cite the following:
+- Y. Safadi, “CesiumJS Demo Docs - 3D Visualization of Multimodal Mobility Modeling”, Zenodo, Mar. 05, 2024. doi: [10.5281/zenodo.10781332](https://doi.org/10.5281/zenodo.10781332)
+
+## License
+This project is licensed under the Apache License 2.0. See the [LICENSE](LICENSE) file for details.
